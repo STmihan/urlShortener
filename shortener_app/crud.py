@@ -19,8 +19,11 @@ def get_db_url_by_secret_key(db: Session, secret_key: str) -> models.URL:
     )
 
 
-def create_db_url(db: Session, url: schemas.URLBase) -> models.URL:
-    key = keygen.create_unique_random_key(db)
+def create_db_url(db: Session, url: schemas.URLBase, custom_key: str = "") -> models.URL:
+    if custom_key:
+        key = custom_key
+    else:
+        key = keygen.create_unique_random_key(db)
     secret_key = f"{key}_{keygen.create_random_key(length=8)}"
     db_url = models.URL(
         target_url=url.target_url, key=key, secret_key=secret_key

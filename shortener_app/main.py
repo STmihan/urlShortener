@@ -52,6 +52,16 @@ def create_url(url: schemas.URLBase, db: Session = Depends(get_db)):
     return get_admin_info(db_url)
 
 
+@app.post("/url/{custom_key}", response_model=schemas.URLInfo)
+def create_url_custom_key(custom_key: str, url: schemas.URLBase, db: Session = Depends(get_db)):
+    if not validators.url(url.target_url):
+        raise_bad_request(message="Your provided URL is not valid.")
+    if crud.get_db_url_by_key(db=db, url_key=custom_key):
+        raise_bad_request(message="Your provided custom key has already been taken.")
+    db_url = crud.create_db_url(db=db, url=url, custom_key=custom_key)
+    return get_admin_info(db_url)
+
+
 @app.get("/{url_key}")
 def forward_to_target_url(
         url_key: str,
