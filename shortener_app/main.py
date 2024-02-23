@@ -32,7 +32,15 @@ def get_admin_info(db_url: models.URL) -> schemas.URLInfo:
 
 
 def check_website_exists(target_url: str):
-    return requests.get(target_url).status_code == 200
+    try:
+        response = requests.get(target_url)
+        try:
+            response.raise_for_status()
+            return True
+        except requests.exceptions.HTTPError:
+            return False
+    except requests.exceptions.ConnectionError:
+        return False
 
 
 def raise_not_found(request):
