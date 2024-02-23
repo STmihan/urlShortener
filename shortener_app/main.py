@@ -1,4 +1,5 @@
 import validators
+import requests
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -28,6 +29,10 @@ def get_admin_info(db_url: models.URL) -> schemas.URLInfo:
     db_url.url = str(base_url.replace(path=db_url.key))
     db_url.admin_url = str(base_url.replace(path=admin_endpoint))
     return db_url
+
+
+def check_website_exists(target_url: str):
+    return requests.get(target_url).status_code == 200
 
 
 def raise_not_found(request):
@@ -71,7 +76,10 @@ def forward_to_target_url(
     db_url = crud.get_db_url_by_key(db=db, url_key=url_key)
     if db_url:
         crud.update_db_clicks(db=db, db_url=db_url)
-        return RedirectResponse(db_url.target_url)
+        if check_website_exists(db_url.target_url):
+            return RedirectResponse(db_url.target_url)
+        else:
+            raise_bad_request(message="Target URL does not exist.")
     else:
         raise_not_found(request)
 
