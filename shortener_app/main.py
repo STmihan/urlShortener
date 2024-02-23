@@ -97,3 +97,12 @@ def delete_url(secret_key: str, request: Request, db: Session = Depends(get_db))
         return {"detail": message}
     else:
         raise_not_found(request=request)
+
+
+@app.get("/peek/{url_key}", response_model=schemas.URLBase)
+def peek_target_url(url_key: str, request: Request, db: Session = Depends(get_db)):
+    db_url = crud.get_db_url_by_key(db=db, url_key=url_key)
+    if db_url:
+        return db_url
+    else:
+        raise_not_found(request=request)
